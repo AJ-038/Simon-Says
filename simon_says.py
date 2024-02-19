@@ -35,7 +35,11 @@ class Button:
             return False
 
     def respond(self):
-        pass
+        self.turn_light_on()
+        self.sound.play()
+        sleep(1)
+        self.turn_light_off()
+        sleep(0.25)
 
     def __str__(self):
         return self.color
