@@ -3,6 +3,7 @@ from time import sleep
 from random import choice
 import pygame
 from pygame.mixer import Sound
+import os
 
 pygame.init()
 
@@ -15,7 +16,6 @@ class Button:
         self.led = led
         self.sound: Sound = Sound(sound)
         self.color = color
-    
 
     def setupGPIO(self):
         GPIO.setup(self.switch, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -49,8 +49,16 @@ class Simon:
     
     WELCOME_MESSAGE = ""
 
+    # Paths should use os.path.join()
+    # Do not use C:\\directory\\directory2\\
+    # Windows is wrong with the backslash
+    #       avoid windows paths of \\directory\\directory2\\
+    # do not use the root directory of the VS code project
     BUTTONS = [
-
+        Button(switch=20, led=6, sound=os.path.join("sounds", "one.wav"), color="red"),
+        Button(switch=16, led=13, sound=os.path.join("sounds", "two.wav"), color="blue"),
+        Button(switch=12, led=19, sound=os.path.join("sounds", "three.wav"), color="yellow"),
+        Button(switch=26, led=21, sound=os.path.join("sounds", "four.wav"), color="green")
     ]
 
     def __init__(self, debug=True):
@@ -62,7 +70,20 @@ class Simon:
             print(*args)
     
     def blink_all_buttoms(self):
-        pass
+        leds = []
+        for button in Simon.BUTTONS:
+            leds.append(button.led)
+        GPIO.output(leds, True)
+        sleep(0.5)
+        GPIO.output(leds, False)
+        sleep(0.5)
+
+        # alternative if above doesnt work on potato:
+        # for button in Simon.BUTTONS:
+        #     button.turn_light_on()
+        #     sleep(0.5)
+        #     button.turn_light_off()
+        #     sleep(0.5)
 
     def add_to_sequence(self):
         pass
