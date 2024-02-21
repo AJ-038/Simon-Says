@@ -86,16 +86,45 @@ class Simon:
         #     sleep(0.5)
 
     def add_to_sequence(self):
-        pass
+        random_button = choice(Simon.BUTTONS)
+        self.sequence.append(random_button)
 
     def lose(self):
-        pass
+        for _ in range(4):
+            self.blink_all_buttoms()
+        GPIO.cleanup()
+        exit()
 
     def playback(self):
-        pass
+        for button in self.sequence:
+            button.respond()
+
+    def wait_for_press(self):
+        while True:
+            for button in Simon.BUTTONS:
+                if button.is_pressed():
+                    self.debut_out(button.color)
+                    button.respond()
+                    return button  # this kills the while true and tells us which button was pressed
 
     def check_input(self, pressed_button, correct_button):
-        pass
-
+        if pressed_button.switch != correct_button.switch:
+            self.lose()
+    
     def run(self):
-        pass
+        print(Simon.WELCOME_MESSAGE)
+
+        # game starts with 2 buttons in sequence
+        self.add_to_sequence()
+        self.add_to_sequence()
+
+        # use ctrl + c to kill the game at any time
+        try:
+            while True:
+                self.add_to_sequence()
+                self.playback()
+                self.debut_out(*self.sequence)
+                
+
+        except KeyboardInterrupt:
+            pass
