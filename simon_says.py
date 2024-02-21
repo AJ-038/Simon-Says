@@ -1,3 +1,6 @@
+# Names: Amanda Berg and Lily Williams
+
+
 import pineworkslabs.RPi as GPIO
 from time import sleep
 from random import choice
@@ -47,7 +50,7 @@ class Button:
 
 class Simon:
     
-    WELCOME_MESSAGE = ""
+    WELCOME_MESSAGE = "Welcome to SIMON!!! Press CTRL+C to quit anytime."
 
     # Paths should use os.path.join()
     # Do not use C:\\directory\\directory2\\
@@ -124,7 +127,13 @@ class Simon:
                 self.add_to_sequence()
                 self.playback()
                 self.debut_out(*self.sequence)
-                
+                for button in self.sequence:
+                    pressed_button = self.wait_for_press()
+                    self.check_input(pressed_button, button)
+
 
         except KeyboardInterrupt:
-            pass
+            GPIO.cleanup()
+        
+simon = Simon()
+simon.run()
