@@ -1,6 +1,5 @@
 # Names: Amanda Berg and Lily Williams
 
-
 import pineworkslabs.RPi as GPIO
 from time import sleep
 from random import choice
@@ -12,9 +11,10 @@ pygame.init()
 
 GPIO.setmode(GPIO.LE_POTATO_LOOKUP)
 
+
 class Button:
     
-    def __init__(self, switch:int, led:int, sound:str, color:str):
+    def __init__(self, switch: int, led: int, sound: str, color: str):
         self.switch = switch
         self.led = led
         self.sound: Sound = Sound(sound)
@@ -37,12 +37,14 @@ class Button:
         else:
             return False
 
-    def respond(self):
-        self.turn_light_on()
+    def respond(self,play_time, wait_time, lights):
+        if not lights:
+            self.turn_light_on()
+
         self.sound.play()
-        sleep(1)
+        sleep(play_time)
         self.turn_light_off()
-        sleep(0.25)
+        sleep(wait_time)
 
     def __str__(self):
         return self.color
@@ -67,6 +69,7 @@ class Simon:
     def __init__(self, debug=True):
         self.debug = debug
         self.sequence: list[Button] = []  #python 3.10+ only?
+        self.score = 0
 
     def debut_out(self, *args):
         if self.debug:
@@ -95,19 +98,20 @@ class Simon:
     def lose(self):
         for _ in range(4):
             self.blink_all_buttoms()
+        print(f"You made it to a sequence of {self.score}")
         GPIO.cleanup()
         exit()
 
-    def playback(self):
+    def playback(self, play_time, wait_time, lights):
         for button in self.sequence:
-            button.respond()
+            button.respond(play_time, wait_time, lights)
 
     def wait_for_press(self):
         while True:
             for button in Simon.BUTTONS:
                 if button.is_pressed():
                     self.debut_out(button.color)
-                    button.respond()
+                    button.respond(1,0.5, True)
                     return button  # this kills the while true and tells us which button was pressed
 
     def check_input(self, pressed_button, correct_button):
@@ -121,19 +125,37 @@ class Simon:
         self.add_to_sequence()
         self.add_to_sequence()
 
+        # vars that affect difficulty settings
+        play_time = 1.0
+        wait_time = 0.5
+        lights = True
+
         # use ctrl + c to kill the game at any time
         try:
+
             while True:
                 self.add_to_sequence()
-                self.playback()
+
+                # added difficulty settings
+                if len(self.sequence) in [5, 7]:
+                    play_time -= 0.1
+                    wait_time -= 0.1
+                if len(self.sequence) in [10, 13]:
+                    play_time -= 0.1
+                    wait_time -= 0.05
+                if len(self.sequence) == 15:
+                    lights = False
+
+                self.playback(play_time, wait_time, lights)
                 self.debut_out(*self.sequence)
                 for button in self.sequence:
                     pressed_button = self.wait_for_press()
                     self.check_input(pressed_button, button)
-
+                    self.score += 1
 
         except KeyboardInterrupt:
             GPIO.cleanup()
         
+
 simon = Simon()
 simon.run()
